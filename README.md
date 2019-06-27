@@ -27,6 +27,19 @@ The startup script facilitates running *snort* in 3 different modes:
   forwarded packets, so its possible to detect, discard and log
   packets. [More info][ips-nfq].
 
+## Log Processor
+
+The image contains the [`u2text`][u2text] log processor (disabled by
+default, see environment variables) that can be configured to:
+
+* Report alerts and packets to stdout (with optional full packet hex
+  dumps).
+* Parsing captured packets into JSON with TShark.
+* Logging JSON remotely with syslog or gelf.
+    * To avoid sending full packet captures to remote log server,
+      `u2text` provides a mini http packet server and tags the log
+      entry with a download url.
+
 ## Environment Variables
 
 All the following (except `OINKCODE` and `POLICY`) are used to
@@ -46,14 +59,20 @@ more information.
 | `LOG_DIR`               | Location logs and packet captures are stored. Default: `/var/log/snort`                                                                    |
 | `LOG_ALERTS`            | Whether alerts are logged to a file. Values: `none` (default), `fast`, `full`.                                                             |
 | `ALERT_FILENAME`        | File to log alerts to. Default: `alert.log`.                                                                                               |
-| `PACKET_CAPTURE_FORMAT` | Format used for logging packet captures. Values `pcap` (default), `unified2`.                                                              |
+| `PACKET_CAPTURE_FORMAT` | Format used for logging packet captures. Values `pcap`, `unified2` (default).                                                              |
 | `PCAP_FILENAME`         | Base filename for `pcap` files. Snort will append epoch. Default: `snort.pcap`.                                                            |
 | `UNIFIED2_FILENAME`     | Base filename for `unified2` files. Snort will append epoch. Default: `snort.u2`.                                                          |
-| `SYSLOG`                | Enable sending alerts over syslog. Values: `yes` or `no` (default).                                                                        |
-| `SYSLOG_SERVER`         | Configure `busybox`'s `syslogd`. Default: `10.0.0.1:514`.                                                                                  |
+| `SYSLOG`                | Enable sending alerts over syslog to remote server. Values: `yes` or `no` (default).                                                       |
+| `SYSLOG_SERVER`         | Remote syslog server to receive messages. Default: `10.0.0.1:514`.                                                                         |
 | `SYSLOG_FACILITY`       | See snort documentation of *Output Modules* for values. Default: `log_local4`.                                                             |
 | `SYSLOG_PRIORITY`       | See snort documentation of *Output Modules* for values. Default: `alert`.                                                                  |
 | `PORTSCAN`              | Enable portscan detection (uses `sfportscan`). Values: `yes` (default), `no`.                                                              |
+| `U2_ENABLE`             | Run `u2text` to post process log files. Values: `yes`, `no` (default).                                                                     |
+| `U2_GELF`               | Remote GELF server address and udp port in the `addr:port` format Default: unset.                                                          |
+| `U2_SYSLOG`             | Remote syslog server address with protocol and port, e.g. `udp://addr:514`. Default: unset.                                                |
+| `U2_STDOUT`             | Output reports to stdout. Values: `yes` (default), `no`.                                                                                   |
+| `U2_STDOUT_HEXDUMP`     | When set (and `U2_STDOUT=yes`), output hexdump of alerting packet on stdout. Values: `yes` (default), `no`.                                |
+| `U2_PACKETSERVER_URL`   | When set, enables a http server on port 8865. The value should be the public url of this service. e.g. `http://1.2.3.4:8865`.              |
 
 ## Usage
 
@@ -319,3 +338,4 @@ Copyright 2019 Karim Kanso
 [snort-rule-download]: https://www.snort.org/downloads/#rule-downloads "Snort.org: Snort Rules and IDS Software Download"
 [snort-oink]: https://www.snort.org/oinkcodes "Snort.org: Oinkcodes"
 [docker-mirror]: https://stackoverflow.com/a/38747127/5660642 "StackOverflow.com: Docker - traffic mirroring"
+[u2text]: https://github.com/kazkansouh/u2text "GitHub.com: Parser for Unifed2 log files in Go"

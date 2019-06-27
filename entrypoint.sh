@@ -56,16 +56,17 @@ if test ! -f ${CONFIG} ; then
         exit 1
     fi
 
-    # current version of snort in alpine does not have lzma support,
-    # so it needs to be disabled in the config.
-    sed -e 's|/usr/local|/usr|' -e "s|\.\./|${RULE_DIR}|" \
-        -e 's|lzma||' \
+    sed -E \
+        -e 's|/usr/local|/usr|' \
+        -e "s|\.\./|${RULE_DIR}|" \
         -e '/^# *config logdir:/a\\nconfig interface: eth0' \
         -e '/^# *unified2/iinclude output.conf\n' \
-        -e '/^# *include $SO_RULE_PATH/s/^# *//' \
-        -e "s|^# *\(dynamicdetection directory\).*$|\1 ${DYN_DETECT}|" \
-        -e '/^# *include $PREPROC_RULE_PATH/s/^# *//' \
-        -e 's|^# *\(config daq:\).*$|\1 afpacket|' \
+        -e '/^# *include \$SO_RULE_PATH/s/^# *//' \
+        -e "s|^# *(dynamicdetection directory).*$|\1 ${DYN_DETECT}|" \
+        -e '/^# *include \$PREPROC_RULE_PATH/s/^# *//' \
+        -e 's|^# *(config daq:).*$|\1 afpacket|' \
+        -e 's|# *(config set_uid:).*|\1 snort|' \
+        -e 's|# *(config set_gid:).*|\1 snort\nconfig umask: 033|' \
         etc/snort.conf > ${CONFIG} || {
         echo ERROR: Failed to patch config file
         rm -f ${CONFIG}
@@ -199,6 +200,38 @@ EOF
              connectivity, max-detect
         exit 1
 esac
+
+if test "${U2_ENABLE}" == "yes" ; then
+    if test -n "${DISABLE_UNIFIED2}" ; then
+        echo ERROR: unified2 logging is disabled, unable to start u2text
+        exit 1
+    fi
+    if test -n "${U2_PACKETSERVER_URL}" &&
+            ! mkdir -p "${LOG_DIR}/packetcache" ; then
+        echo ERROR: Unable to mkdir for [${LOG_DIR}/packetcache]
+        exit 1
+    fi
+    echo Starting u2text unified2 log processor
+    u2text \
+        "-spooler-directory=${LOG_DIR}" \
+        "-spooler-base-filename=${UNIFIED2_FILENAME}" \
+        "-spooler-marker=${LOG_DIR}/waldo.marker" \
+        -meta-classification=/etc/snort/classification.config \
+        -meta-genmsg=/etc/snort/gen-msg.map \
+        -meta-sidmsg=/etc/snort/sid-msg.map \
+        -tshark-level=full \
+        -tshark-filter=ip,data,tcp,udp,http \
+        -log-displaypacket=hash \
+        $(test "${U2_STDOUT}" == "yes" && echo "-report-file=-" &&
+          $(test "${U2_STDOUT_HEXDUMP}" == "yes"  && echo "-report-hex-dump")
+        ) \
+        $(test -n "${U2_GELF}" && echo "-log-gelf=${U2_GELF}") \
+        $(test -n "${U2_SYSLOG}" && echo "-log-syslog=${U2_SYSLOG}") \
+        "-log-packet-server-directory=${LOG_DIR}/packetcache" \
+        $(test -n "${U2_PACKETSERVER_URL}" &&
+              echo "-log-packet-server-presentation=${U2_PACKETSERVER_URL}") \
+        &
+fi
 
 echo Continuing boot
 
