@@ -1,0 +1,19 @@
+{
+    "name": "snort",
+    "category": "firewall",
+    "description": "Snort Intrusion Detection/Protection System with u2text log processor.",
+    "vendor_name": "Snort",
+    "vendor_url": "www.snort.org",
+    "product_name": "Snort",
+    "registry_version": 1,
+    "status": "stable",
+    "maintainer": "Karim Kanso",
+    "maintainer_email": "none@none.net",
+    "usage": "Set environment variable HOME_NET to a CIDR that is to be protected and OINKCODE to your code (available for free after registering on snort.org).\n\nOn first boot the image will download the latest ruleset using your OINKCODE.\n\nThere are numerous environment variables that can be configured, see https://github.com/kazkansouh/gns3-snort for full information and usage.",
+    "symbol": ":/symbols/ids.svg",
+    "docker": {
+        "adapters": 2,
+        "image": "karimkanso/gns3-snort:latest",
+        "environment": "OINKCODE=<oinkcode>\nHOME_NET=172.17.0.0/16\n_EXTERNAL_NET=!$HOME_NET\n_INTERFACE=eth0\n_INLINE=no/l2/l3\n_POLICY=manual/security-ips/balanced-ips/connectivity-ips\n_STDOUT=none/fast/full\n_LOG_DIR=/var/log/snort/\n_LOG_ALERTS=none/fast/full\n_ALERT_FILENAME=alert.log\n_PACKET_CAPTURE_FORMAT=pcap/unified2\n_PCAP_FILENAME=snort.pcap\n_UNIFIED2_FILENAME=snort.u2\n_SYSLOG=yes/no\n_SYSLOG_SERVER=1.2.3.4:514\n_SYSLOG_FACILITY=log_local4\n_SYSLOG_PRIORITY=log_alert\n_PORTSCAN=yes/no\n_U2_ENABLE=yes/no\n_U2_GELF=1.2.3.4:1234\n_U2_SYSLOG=udp://1.2.3.4:514\n_U2_STDOUT=yes/no\n_U2_STDOUT_HEXDUMP=yes/no\n_U2_PACKETSERVER_URL=http://1.2.3.4:8865"
+    }
+}

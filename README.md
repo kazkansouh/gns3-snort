@@ -130,7 +130,13 @@ starting it with environment variable: `INLINE=l3`.
 
 ### Usage in GNS3
 
-**TODO:** Download and import the following appliance file.
+The easiest way to setup the image within GNS3 is to download and
+import the [appliance file][appliance-file]. Once it has been
+imported, the *snort* appliance will be under the security appliances.
+
+See below sections for ways the image can be topologically
+configured. Most will require changing the number of Ethernet ports on
+the appliance.
 
 #### IDS Setup
 
@@ -339,3 +345,4 @@ Copyright 2019 Karim Kanso
 [snort-oink]: https://www.snort.org/oinkcodes "Snort.org: Oinkcodes"
 [docker-mirror]: https://stackoverflow.com/a/38747127/5660642 "StackOverflow.com: Docker - traffic mirroring"
 [u2text]: https://github.com/kazkansouh/u2text "GitHub.com: Parser for Unifed2 log files in Go"
+[appliance-file]: https://github.com/kazkansouh/gns3-snort/blob/master/snort.gns3a "GNS3 Appliance File"
